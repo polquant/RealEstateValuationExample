@@ -43,6 +43,7 @@ class RealEstateModel(pl.LightningModule):
             nn.ELU(0.1),
             nn.Linear(in_features=price_outputs_num, out_features=1)
         )
+        # simple mean squared error, first choice for regression problems
         self.price_loss = F.mse_loss
 
         self.offers_head = nn.ModuleList(
@@ -63,6 +64,7 @@ class RealEstateModel(pl.LightningModule):
 
     def forward(self, x):
         # One can have all numeric inputs already concatenated. Here we keep them separately for readability
+        # Here we assume type_, city, heating_rate being already one-hot encoded
         type_, city, heating_rate, transport_distance, size, num_rooms, num_bathrooms = x
 
         type_value = self.type_linear(type_)
@@ -97,12 +99,19 @@ class RealEstateModel(pl.LightningModule):
     def training_step(self, batch, batch_idx):
         inputs, targets = batch
         sale_price, offers = targets
+
         predicted_sale_price_log, predicted_offers = self(inputs)
+
         loss_for_price_log = self.price_loss(predicted_sale_price_log, torch.log(sale_price))
+
+        # if offers are categorical should be already one-hot encoded
         loss_for_offers = self.offers_loss(predicted_offers, offers)
+
+        # returning weighted loss
         return self.price_loss_weight * loss_for_price_log + self.offers_loss_weight * loss_for_offers
 
     def configure_optimizers(self):
+        # Using adaptive optimizer for faster convergence
         return torch.optim.Adam(self.parameters(), lr=0.001)
 
 
