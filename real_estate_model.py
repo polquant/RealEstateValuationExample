@@ -49,7 +49,7 @@ class RealEstateModel(pl.LightningModule):
         self.offers_head = nn.ModuleList(
             [
                 nn.LazyLinear(out_features=offers_outputs_num),
-                nn.Sigmoid()
+                nn.ELU(0.1)
             ]
         )
         if self.offers_as_category:
