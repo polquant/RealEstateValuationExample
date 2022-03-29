@@ -79,7 +79,7 @@ class RealEstateModel(pl.LightningModule):
                 city_value,
                 heating_rate_value,
                 transport_distance,
-                avg_room_size,
+                avg_room_size,  # one could consider to use both avg_room_size and size
                 num_bathrooms
             ],
             dim=-1
